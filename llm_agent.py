@@ -12,7 +12,8 @@ from os import getenv
 
 load_dotenv(find_dotenv())
 
-DOCUMENT_FILE = "Документ с ответами.docx"  # путь к файлу с содержанием
+# DOCUMENT_FILE = "Философия_ответы.pdf"  # путь к файлу с содержанием
+DOCUMENT_FILE = "Философия_подробно.pdf"  # путь к файлу с содержанием
 
 
 @tool
@@ -68,7 +69,7 @@ def get_user_prompt() -> str:
 def setup():
     model = GigaChat(
         credentials=getenv("GIGACHAT_CREDENTIALS"),
-        model="GigaChat-2-Max",
+        model="GigaChat-2-Pro",
         verify_ssl_certs=False,
     )
 

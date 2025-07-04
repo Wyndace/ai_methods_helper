@@ -2,20 +2,30 @@ import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 from llm_agent import setup
+import re
 
 # Загружаем агента из готового llm_agent.py
 agent, _ = setup()  # system_prompt можно не выводить пользователю в Telegram
 
 
+def escape_markdown_v2(text: str) -> str:
+    return re.sub(r"([\-_\*\[\]\(\)~`>#+=|{}.!])", r"\\\1", text)
+
+
 # Обработчик текстовых сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_input = update.message.text
-    try:
-        response = agent.invoke(user_input)
-    except Exception as e:
-        logging.exception("Ошибка при обработке запроса LLM:")
-        response = "Произошла ошибка при получении ответа. Попробуйте позже."
-    await update.message.reply_text(response)
+    if message := update.message:
+        user_input = message.text
+        try:
+            await context.bot.send_chat_action(chat_id=message.chat.id, action="typing")
+            if user_input:
+                response = agent.invoke(user_input)
+            else:
+                raise ValueError("Пустой ввод пользователя")
+        except Exception as e:
+            logging.exception("Ошибка при обработке запроса LLM:")
+            response = f"Произошла ошибка при получении ответа. Попробуйте позже.\n {e.__str__()}"
+        await message.reply_text(escape_markdown_v2(response), parse_mode="MarkdownV2")
 
 
 def main():
